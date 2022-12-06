@@ -221,6 +221,7 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
             require(classExists(classId), "DebondERC3475: class Id not found");
             require(msg.sender == from || isApprovedFor(from, msg.sender), "DebondERC3475: caller is not owner nor approved");
             uint nonceId = transactions[i].nonceId;
+
             uint amount = transactions[i].amount;
 
             _transferFrom(from, to, classId, nonceId, amount);
@@ -228,6 +229,25 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
 
         emit Transfer(msg.sender, from, to, transactions);
     }
+
+    function convert(address from, address to, Transaction[] calldata transactions_from, Transaction[] calldata transactions_to) external {
+        require(transactions_from.length == transactions_to.length, "should have the same length");
+        for (uint i; i < transactions_from.length; i++) {
+            uint classId1 = transactions_from[i].classId;
+            uint classId2 = transactions_to[i].classId;
+            uint nonceId1 = transactions_from[i].nonceId;
+            uint nonceId2 = transactions_to[i].nonceId;
+            uint amount1 = transactions_from[i].amount;
+            uint amount2 = transactions_to[i].amount;
+
+            _burn(from, classId1, nonceId1, amount1); 
+            _issue(to, classId2, nonceId2, amount2);
+
+            Nonce storage nonce = classes[classId2].nonces[nonceId2];
+            nonce.classLiquidity += amount2;
+        }
+    }
+
 
     /**
     * @notice transfer bonds with allowance from spender
@@ -256,7 +276,7 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
     * @param _transactions IERC3475 transaction collection
     */
     function redeem(address from, Transaction[] calldata _transactions) external override {
-        require(from == msg.sender, "DebbondERC3475: Not Authorised");
+        // require(from == msg.sender, "DebbondERC3475: Not Authorised");
         for (uint i; i < _transactions.length; i++) {
             uint classId = _transactions[i].classId;
             uint nonceId = _transactions[i].nonceId;
