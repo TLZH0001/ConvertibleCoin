@@ -67,11 +67,15 @@ contract('Bond', async (accounts: string[]) => {
 
     it('add address to dict', async () => {
         await bondContract.add_bondmanager(governance);
+        const Id = await bondContract.get_bondmanager(governance);
+        assert.isTrue(Id.toNumber() == 0);
 
     })
 
     it('add address to dict', async () => {
         await bondContract.add_bondmanager(bondManager);
+        const Id = await bondContract.get_bondmanager(bondManager);
+        assert.isTrue(Id.toNumber() == 1);
     })
 
     // it('remove address to dict', async () => {
