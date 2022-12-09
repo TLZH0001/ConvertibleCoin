@@ -217,11 +217,6 @@ contract('Bond', async (accounts: string[]) => {
         assert.isTrue(web3.utils.toWei('4300') == company1ShareBalance.toString())
     })
 
-    it('remove address to dict', async () => {
-        await bondContract.remove_bondmanager(bondManager);
-        const Id = await bondContract.get_bondmanager(bondManager);
-        assert.isTrue(Id.toNumber() == 0);
-    })
 
     it('Should redeem bonds', async () => {
         const transactions: Transaction[] = [
