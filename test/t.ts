@@ -37,8 +37,8 @@ contract('Bond', async (accounts: string[]) => {
     let bondContract: DebondERC3475Instance
     let progressCalculatorContract: ProgressCalculatorInstance
 
-    const SHARE = 0;
-    const COMPANY1=1;
+    const SHARE = 1;
+    const COMPANY1=2;
     const [governance, bondManager, user1, user2, operator, spender, DBITAddress] = accounts;
 
     const now = parseInt(Date.now().toString().substring(-3));
@@ -64,6 +64,19 @@ contract('Bond', async (accounts: string[]) => {
         progressCalculatorContract = await ProgressCalculator.deployed();
 
     })
+
+    it('add address to dict', async () => {
+        await bondContract.add_bondmanager(governance);
+
+    })
+
+    it('add address to dict', async () => {
+        await bondContract.add_bondmanager(bondManager);
+    })
+
+    // it('remove address to dict', async () => {
+    //     await bondContract.remove_bondmanager(bondManager);
+    // })
 
     it('Should create set of metadatas for classes, only the Bank can do that action', async () => {
         let metadataIds: number[] = [];

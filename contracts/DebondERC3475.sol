@@ -264,10 +264,10 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
         require(msg.sender == from || isApprovedFor(from, msg.sender), "DebondERC3475: caller is not owner nor approved");
         for (uint i; i < transactions_from.length; i++) {
             uint classId1 = transactions_from[i].classId;
-            require(classId1!=0,"cannot be share");
+            require(classId1>1,"cannot be share");
             uint nonceId1 = transactions_from[i].nonceId;
             uint amount1 = transactions_from[i].amount;
-            uint classId2 = 0;
+            uint classId2 = 1;
             uint nonceId2 = classId1;
             uint amount2 = amount1*classes[classId1].nonces[nonceId1].values[4].uintValue/10000000;
             require(classExists(classId1), "DebondERC3475: class Id not found");
@@ -334,7 +334,7 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
             uint amount = _transactions[i].amount;
             require(classes[classId].nonces[nonceId].exists, "ERC3475: given Nonce doesn't exist");
             require(from != address(0), "ERC3475: can't transfer to the zero address");
-            require(block.timestamp >= classes[classId1].nonces[nonceId1].values[6].uintValue, "Bond is not redeemible");
+            require(block.timestamp >= classes[classId].nonces[nonceId].values[6].uintValue, "Bond is not redeemible");
             _redeem(from, classId, nonceId, amount);
         }
         // liquidity backing the bonds transfers
