@@ -18,6 +18,11 @@ interface Metadata {
     description: string;
 }
 
+interface AddressDict {
+    bondManagerAddress: string;
+    classId: number; 
+}
+
 interface Value {
     stringValue: string;
     uintValue: number | BN | string;
@@ -58,6 +63,16 @@ contract('Bond', async (accounts: string[]) => {
         progressCalculatorContract = await ProgressCalculator.deployed();
 
     })
+
+    it('add address to dict', async () => {
+        await bondContract.add_bondmanager(bondManager);
+    })
+
+    it('remove address to dict', async () => {
+        await bondContract.remove_bondmanager(bondManager);
+    })
+    
+    
 
     it('Should create set of metadatas for classes, only the Bank can do that action', async () => {
         let metadataIds: number[] = [];
@@ -117,8 +132,12 @@ contract('Bond', async (accounts: string[]) => {
     })
 
     it('Should Issue bonds to an account, only the Bank can do that action', async () => {
+        const Id = await bondContract.get_bondmanager(bondManager);
+        console.log(Id.toNumber());
+        console.log(DBIT_FIX_6MTH_CLASS_ID);
         const transactions: Transaction[] = [
-            {classId: DBIT_FIX_6MTH_CLASS_ID, nonceId: 0, amount: web3.utils.toWei('5000')}
+            //{classId: DBIT_FIX_6MTH_CLASS_ID, nonceId: 0, amount: web3.utils.toWei('5000')}
+            {classId: Id.toNumber(), nonceId: 0, amount: web3.utils.toWei('5000')}
         ]
         await bondContract.issue(user1, transactions, {from: bondManager});
         const buyerBalance = await bondContract.balanceOf(user1, DBIT_FIX_6MTH_CLASS_ID, 0);

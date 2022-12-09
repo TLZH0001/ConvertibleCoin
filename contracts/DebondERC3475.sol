@@ -14,7 +14,6 @@
 
 pragma solidity ^0.8.0;
 
-
 import "./interfaces/IDebondBond.sol";
 import "./interfaces/IProgressCalculator.sol";
 import "./interfaces/ILiquidityRedeemable.sol";
@@ -25,6 +24,8 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
 
     address bondManagerAddress;
     address bankAddress;
+    mapping (address => uint) public bondManagerAddressDict;
+    uint globalClassID = 1;
 
     /**
     * @notice this Struct is representing the Nonce properties as an object
@@ -67,6 +68,11 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
 
     modifier onlyBondManager() {
         require(msg.sender == bondManagerAddress, "DebondERC3475 Error: Not authorized");
+        _;
+    }
+
+    modifier onlyBondManagerList(uint256 classId) {
+        require(bondManagerAddressDict[msg.sender] == classId, "DebondERC3475 Error: Not authorized");
         _;
     }
 
@@ -179,8 +185,10 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
     * @param metadataIds identifiers of the metadatas (keys for values)
     * @param values value collection
     */
-    function createClass(uint256 classId, uint256[] calldata metadataIds, IERC3475.Values[] calldata values) external onlyBondManager {
+    // function createClass(uint256 classId, uint256[] calldata metadataIds, IERC3475.Values[] calldata values) external onlyBondManager {
+    function createClass(uint256 classId, uint256[] calldata metadataIds, IERC3475.Values[] calldata values) external onlyBondManagerList(classId) {
         require(metadataIds.length == values.length, "ERC3475: inputs error");
+        //require(bondManagerAddressDict[address])
         require(!classExists(classId), "ERC3475: cannot create a class that already exists");
         Class storage class = classes[classId];
         class.id = classId;
@@ -198,7 +206,8 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
     * @param metadataIds identifiers of the metadatas (keys for values)
     * @param values value collection
     */
-    function createNonce(uint256 classId, uint256 nonceId, uint256[] calldata metadataIds, IERC3475.Values[] calldata values) external onlyBondManager {
+    // function createNonce(uint256 classId, uint256 nonceId, uint256[] calldata metadataIds, IERC3475.Values[] calldata values) external onlyBondManager {
+    function createNonce(uint256 classId, uint256 nonceId, uint256[] calldata metadataIds, IERC3475.Values[] calldata values) external onlyBondManagerList(classId) {
         require(metadataIds.length == values.length, "ERC3475: inputs error");
         require(classExists(classId), "DebondERC3475: class Id not found");
         Class storage class = classes[classId];
@@ -257,6 +266,25 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
         }
     }
 
+    function add_bondmanager(address key) external {
+        bondManagerAddressDict[key] = globalClassID;
+        require(bondManagerAddressDict[key] == globalClassID, "Dict Error");
+        globalClassID += 1;
+    }
+
+    function get_bondmanager(address key) external view returns (uint256) {
+        // uint Id = bondManagerAddressDict[key];
+        // delete bondManagerAddressDict[key];
+        return bondManagerAddressDict[key]; //{address, classid: 0}
+        // require(bondManagerAddressDict[key] == 0, "Dict Error");
+    }
+
+    function remove_bondmanager(address key) external {
+        // uint Id = bondManagerAddressDict[key];
+        // delete bondManagerAddressDict[key];
+        bondManagerAddressDict[key] = 0;
+        require(bondManagerAddressDict[key] == 0, "Dict Error");
+    }
 
     /**
     * @notice transfer bonds with allowance from spender
