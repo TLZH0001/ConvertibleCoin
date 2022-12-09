@@ -239,18 +239,21 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
         emit Transfer(msg.sender, from, to, transactions);
     }
 
-    function convert(address from, address to, Transaction[] calldata transactions_from, Transaction[] calldata transactions_to) external {
+    function convert(address from, Transaction[] calldata transactions_from) external {
         require(transactions_from.length == transactions_to.length, "should have the same length");
         for (uint i; i < transactions_from.length; i++) {
             uint classId1 = transactions_from[i].classId;
-            uint classId2 = transactions_to[i].classId;
+            require(classId1!=0,"cannot be share");
             uint nonceId1 = transactions_from[i].nonceId;
-            uint nonceId2 = transactions_to[i].nonceId;
             uint amount1 = transactions_from[i].amount;
-            uint amount2 = transactions_to[i].amount;
+            uint classId2 = 0;
+            uint nonceId2 = classId1;
+            uint amount2 = ;
 
-            _burn(from, classId1, nonceId1, amount1); 
-            _issue(to, classId2, nonceId2, amount2);
+
+            _burn(from, classId1, nonceId1, amount1);
+
+            _issue(from, classId2, nonceId2, amount2);
 
             Nonce storage nonce = classes[classId2].nonces[nonceId2];
             nonce.classLiquidity += amount2;
@@ -285,7 +288,7 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
     * @param _transactions IERC3475 transaction collection
     */
     function redeem(address from, Transaction[] calldata _transactions) external override {
-        // require(from == msg.sender, "DebbondERC3475: Not Authorised");
+        require(from == msg.sender, "DebbondERC3475: Not Authorised");
         for (uint i; i < _transactions.length; i++) {
             uint classId = _transactions[i].classId;
             uint nonceId = _transactions[i].nonceId;
