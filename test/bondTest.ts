@@ -132,117 +132,122 @@ contract('Bond', async (accounts: string[]) => {
         assert.isTrue(noncemd == now);
     })
 
-    // it('Should Issue bonds to an account, only the Bank can do that action', async () => {
-    //     const transactions: Transaction[] = [
-    //         {classId: DBIT_FIX_6MTH_CLASS_ID, nonceId: 0, amount: web3.utils.toWei('5000')}
-    //     ]
-    //     await bondContract.issue(user1, transactions, {from: bondManager});
-    //     const buyerBalance = await bondContract.balanceOf(user1, DBIT_FIX_6MTH_CLASS_ID, 0);
-    //     assert.isTrue(web3.utils.toWei('5000') == buyerBalance.toString())
+    it('Should Issue bonds to an account, only the Bank can do that action', async () => {
+        const transactions: Transaction[] = [
+            {classId: DBIT_FIX_6MTH_CLASS_ID, nonceId: 0, amount: web3.utils.toWei('5000')}
+        ]
+        await bondContract.issue(user1, transactions, {from: bondManager});
+        const buyerBalance = await bondContract.balanceOf(user1, DBIT_FIX_6MTH_CLASS_ID, 0);
+        assert.isTrue(web3.utils.toWei('5000') == buyerBalance.toString())
 
-    // })
-
-
-    // // initiate nonce for user 2
-    // it('Should create a new nonce for a given class, only the Bank can do that action', async () => {
-    //     const values: Value[] = [
-    //         {...defaultValue, uintValue: now},
-    //         {...defaultValue, uintValue: now }, // 6 months
-    //     ]
-    //     await bondContract.createNonce(DBIT_FIX_6MTH_CLASS_ID, 1, nonceMetadatas.map(metadata => nonceMetadatas.indexOf(metadata)), values, {from: bondManager});
-    //     const nonceExists = await bondContract.nonceExists(DBIT_FIX_6MTH_CLASS_ID, 1)
-    //     const nonceIssuanceDate = (await bondContract.nonceValues(DBIT_FIX_6MTH_CLASS_ID, 1, 0)).uintValue
-    //     console.log(nonceIssuanceDate, now)
-    //     assert.isTrue(nonceExists);
-    //     assert.isTrue(nonceIssuanceDate == now);
-    // })
-
-    // it('Should Issue bonds to an account, only the Bank can do that action', async () => {
-    //     const transactions: Transaction[] = [
-    //         {classId: DBIT_FIX_6MTH_CLASS_ID, nonceId: 1, amount: web3.utils.toWei('5000')}
-    //     ]
-    //     await bondContract.issue(user2, transactions, {from: bondManager});
-    //     const buyerBalance = await bondContract.balanceOf(user2, DBIT_FIX_6MTH_CLASS_ID, 1);
-    //     assert.isTrue(web3.utils.toWei('5000') == buyerBalance.toString())
-    // })
+    })
 
 
-    // it('Should transfer bonds', async () => {
-    //     const transactions: Transaction[] = [
-    //         {classId: DBIT_FIX_6MTH_CLASS_ID, nonceId: 0, amount: web3.utils.toWei('1500')}
-    //     ]
-    //     const transactions_fk: Transaction[] = [
-    //         {classId: DBIT_FIX_6MTH_CLASS_ID, nonceId: 1, amount: web3.utils.toWei('1500')}
-    //     ]
-    //     await bondContract.convert(user1, user2, transactions, transactions_fk, {from: user1});
-    //     const user1Balance = await bondContract.balanceOf(user1, DBIT_FIX_6MTH_CLASS_ID, 0);
-    //     const user2Balance = await bondContract.balanceOf(user2, DBIT_FIX_6MTH_CLASS_ID, 1);
-    //     assert.isTrue(web3.utils.toWei('3500') == user1Balance.toString())
-    //     assert.isTrue(web3.utils.toWei('6500') == user2Balance.toString())
-    // })
+    // initiate nonce for user 2
+    it('Should create a new nonce for a given class, only the Bank can do that action', async () => {
+        const values: Value[] = [
+            {...defaultValue, stringValue: "mysymbol"},
+            {...defaultValue, addressValue: DBITAddress},
+            {...defaultValue, uintValue: 1000000},
+            {...defaultValue, uintValue: 3600 * 24 * 180 }, // 6 months
+            {...defaultValue, uintValue: 1000000},
+            {...defaultValue, uintValue: now},
+            {...defaultValue, uintValue: now }, // 6 months
+        ]
+        await bondContract.createNonce(DBIT_FIX_6MTH_CLASS_ID, 1, nonceMetadatas.map(metadata => nonceMetadatas.indexOf(metadata)), values, {from: bondManager});
+        const nonceExists = await bondContract.nonceExists(DBIT_FIX_6MTH_CLASS_ID, 1)
+        const nonceIssuanceDate = (await bondContract.nonceValues(DBIT_FIX_6MTH_CLASS_ID, 1, 5)).uintValue
+        console.log(nonceIssuanceDate, now)
+        assert.isTrue(nonceExists);
+        assert.isTrue(nonceIssuanceDate == now);
+    })
 
-    // it('Should setApproval for an operator', async () => {
-    //     await bondContract.setApprovalFor(operator, true,{from: user1});
-    //     await bondContract.setApprovalFor(operator, true,{from: user2});
-    //     const isApproved = await bondContract.isApprovedFor(user1, operator);
-    //     assert.isTrue(isApproved)
-    // })
+    it('Should Issue bonds to an account, only the Bank can do that action', async () => {
+        const transactions: Transaction[] = [
+            {classId: DBIT_FIX_6MTH_CLASS_ID, nonceId: 1, amount: web3.utils.toWei('5000')}
+        ]
+        await bondContract.issue(user2, transactions, {from: bondManager});
+        const buyerBalance = await bondContract.balanceOf(user2, DBIT_FIX_6MTH_CLASS_ID, 1);
+        assert.isTrue(web3.utils.toWei('5000') == buyerBalance.toString())
+    })
 
-    // it('Should be able for operator to transfer bonds from user to an other', async () => {
-    //     const transactions: Transaction[] = [
-    //         {classId: DBIT_FIX_6MTH_CLASS_ID, nonceId: 0, amount: web3.utils.toWei('500')}
-    //     ]
-    //     const transactions_haha: Transaction[] = [
-    //         {classId: DBIT_FIX_6MTH_CLASS_ID, nonceId: 1, amount: web3.utils.toWei('500')}
-    //     ]
 
-    //     await bondContract.convert(user1, user2, transactions, transactions_haha, {from: operator});
-    //     const user1Balance = await bondContract.balanceOf(user1, DBIT_FIX_6MTH_CLASS_ID, 0);
-    //     const user2Balance = await bondContract.balanceOf(user2, DBIT_FIX_6MTH_CLASS_ID, 1);
-    //     assert.isTrue(web3.utils.toWei('3000') == user1Balance.toString())
-    //     assert.isTrue(web3.utils.toWei('7000') == user2Balance.toString())
-    // })
+    it('Should transfer bonds', async () => {
+        const transactions: Transaction[] = [
+            {classId: DBIT_FIX_6MTH_CLASS_ID, nonceId: 0, amount: web3.utils.toWei('1500')}
+        ]
+        const transactions_fk: Transaction[] = [
+            {classId: DBIT_FIX_6MTH_CLASS_ID, nonceId: 1, amount: web3.utils.toWei('1500')}
+        ]
+        await bondContract.convert(user1, user2, transactions, transactions_fk, {from: user1});
+        const user1Balance = await bondContract.balanceOf(user1, DBIT_FIX_6MTH_CLASS_ID, 0);
+        const user2Balance = await bondContract.balanceOf(user2, DBIT_FIX_6MTH_CLASS_ID, 1);
+        assert.isTrue(web3.utils.toWei('3500') == user1Balance.toString())
+        assert.isTrue(web3.utils.toWei('6500') == user2Balance.toString())
+    })
 
-    // it('Should add allowance for a spender', async () => {
+    it('Should setApproval for an operator', async () => {
+        await bondContract.setApprovalFor(operator, true,{from: user1});
+        await bondContract.setApprovalFor(operator, true,{from: user2});
+        const isApproved = await bondContract.isApprovedFor(user1, operator);
+        assert.isTrue(isApproved)
+    })
+
+    it('Should be able for operator to transfer bonds from user to an other', async () => {
+        const transactions: Transaction[] = [
+            {classId: DBIT_FIX_6MTH_CLASS_ID, nonceId: 0, amount: web3.utils.toWei('500')}
+        ]
+        const transactions_haha: Transaction[] = [
+            {classId: DBIT_FIX_6MTH_CLASS_ID, nonceId: 1, amount: web3.utils.toWei('500')}
+        ]
+
+        await bondContract.convert(user1, user2, transactions, transactions_haha, {from: operator});
+        const user1Balance = await bondContract.balanceOf(user1, DBIT_FIX_6MTH_CLASS_ID, 0);
+        const user2Balance = await bondContract.balanceOf(user2, DBIT_FIX_6MTH_CLASS_ID, 1);
+        assert.isTrue(web3.utils.toWei('3000') == user1Balance.toString())
+        assert.isTrue(web3.utils.toWei('7000') == user2Balance.toString())
+    })
+
+    it('Should add allowance for a spender', async () => {
+        const transactions: Transaction[] = [
+            {classId: DBIT_FIX_6MTH_CLASS_ID, nonceId: 0, amount: web3.utils.toWei('2000')}
+        ]
+        await bondContract.approve(spender, transactions,{from: user1});
+        await bondContract.approve(spender, transactions,{from: user2});
+        const spenderAllowanceOnUser1 = await bondContract.allowance(user1, spender, DBIT_FIX_6MTH_CLASS_ID, 0);
+        const spenderAllowanceOnUser2 = await bondContract.allowance(user2, spender, DBIT_FIX_6MTH_CLASS_ID, 0);
+        assert.isTrue(spenderAllowanceOnUser1.toString() == web3.utils.toWei('2000'))
+        assert.isTrue(spenderAllowanceOnUser2.toString() == web3.utils.toWei('2000'))
+    })
+
+    // it('Should be able for spender to transfer allowance bonds from a user to an other', async () => {
     //     const transactions: Transaction[] = [
     //         {classId: DBIT_FIX_6MTH_CLASS_ID, nonceId: 0, amount: web3.utils.toWei('2000')}
     //     ]
-    //     await bondContract.approve(spender, transactions,{from: user1});
-    //     await bondContract.approve(spender, transactions,{from: user2});
-    //     const spenderAllowanceOnUser1 = await bondContract.allowance(user1, spender, DBIT_FIX_6MTH_CLASS_ID, 0);
-    //     const spenderAllowanceOnUser2 = await bondContract.allowance(user2, spender, DBIT_FIX_6MTH_CLASS_ID, 0);
-    //     assert.isTrue(spenderAllowanceOnUser1.toString() == web3.utils.toWei('2000'))
-    //     assert.isTrue(spenderAllowanceOnUser2.toString() == web3.utils.toWei('2000'))
+    //     await bondContract.transferAllowanceFrom(user1, user2, transactions, {from: spender});
+    //     const user1Balance = await bondContract.balanceOf(user1, DBIT_FIX_6MTH_CLASS_ID, 0);
+    //     const user2Balance = await bondContract.balanceOf(user2, DBIT_FIX_6MTH_CLASS_ID, 0);
+    //     assert.isTrue('0' == user1Balance.toString())
+    //     assert.isTrue(web3.utils.toWei('5000') == user2Balance.toString())
     // })
 
-    // // it('Should be able for spender to transfer allowance bonds from a user to an other', async () => {
-    // //     const transactions: Transaction[] = [
-    // //         {classId: DBIT_FIX_6MTH_CLASS_ID, nonceId: 0, amount: web3.utils.toWei('2000')}
-    // //     ]
-    // //     await bondContract.transferAllowanceFrom(user1, user2, transactions, {from: spender});
-    // //     const user1Balance = await bondContract.balanceOf(user1, DBIT_FIX_6MTH_CLASS_ID, 0);
-    // //     const user2Balance = await bondContract.balanceOf(user2, DBIT_FIX_6MTH_CLASS_ID, 0);
-    // //     assert.isTrue('0' == user1Balance.toString())
-    // //     assert.isTrue(web3.utils.toWei('5000') == user2Balance.toString())
-    // // })
+    it('Should be able to burn bonds from user, only bank can do this action', async () => {
 
-    // it('Should be able to burn bonds from user, only bank can do this action', async () => {
+        // we need to set bank as operator for user
+        await bondContract.setApprovalFor(bondManager, true,{from: user2});
 
-    //     // we need to set bank as operator for user
-    //     await bondContract.setApprovalFor(bondManager, true,{from: user2});
-
-    //     const transactions: Transaction[] = [
-    //         {classId: DBIT_FIX_6MTH_CLASS_ID, nonceId: 1, amount: web3.utils.toWei('1000')}
-    //     ]
-    //     await bondContract.burn(user2, transactions, {from: bondManager});
-    //     const user2Balance = await bondContract.balanceOf(user2, DBIT_FIX_6MTH_CLASS_ID, 1);
-    //     const burnedSupply = await bondContract.burnedSupply(DBIT_FIX_6MTH_CLASS_ID, 1);
-    //     assert.isTrue(web3.utils.toWei('6000') == user2Balance.toString())
-    //     assert.isTrue(web3.utils.toWei('1000') == burnedSupply.toString())
-    //     // const executableAddress = await bondContract.getExecutableAddress();
-    //     // console.log("ExecutableAddress: ", executableAddress);
-    //     // console.log("BankAddress: ", bondContract.getBankAddress());
-    // })
+        const transactions: Transaction[] = [
+            {classId: DBIT_FIX_6MTH_CLASS_ID, nonceId: 1, amount: web3.utils.toWei('1000')}
+        ]
+        await bondContract.burn(user2, transactions, {from: bondManager});
+        const user2Balance = await bondContract.balanceOf(user2, DBIT_FIX_6MTH_CLASS_ID, 1);
+        const burnedSupply = await bondContract.burnedSupply(DBIT_FIX_6MTH_CLASS_ID, 1);
+        assert.isTrue(web3.utils.toWei('6000') == user2Balance.toString())
+        assert.isTrue(web3.utils.toWei('1000') == burnedSupply.toString())
+        // const executableAddress = await bondContract.getExecutableAddress();
+        // console.log("ExecutableAddress: ", executableAddress);
+        // console.log("BankAddress: ", bondContract.getBankAddress());
+    })
 
 
     // till here
