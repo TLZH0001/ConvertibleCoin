@@ -78,7 +78,7 @@ contract('Bond', async (accounts: string[]) => {
         assert.isTrue(metadata.description == classMetadatas[0].description);
     })
 
-    it('Should create share, only the Bank can do that action', async () => {
+    it('Should create share class, only the Bank can do that action', async () => {
 
         const values: Value[] = [
             {...defaultValue, stringValue: "CONCOIN"},
@@ -118,8 +118,17 @@ contract('Bond', async (accounts: string[]) => {
 
     // initiate share for company1
     it('Should create a new share for class0, only the Bank can do that action', async () => {
-        const values: Value[] = []
-        await bondContract.createNonce(SHARE, COMPANY1, nonceMetadatas.map(metadata => shareMetadatas.indexOf(metadata)), values, {from: bondManager});
+        // const values: Value[] = []
+        const values: Value[] = [
+            {...defaultValue},
+            {...defaultValue},
+            {...defaultValue},
+            {...defaultValue}, // 1day
+            {...defaultValue},
+            {...defaultValue},
+            {...defaultValue}, // 6 months
+        ]
+        await bondContract.createNonce(SHARE, COMPANY1, nonceMetadatas.map(metadata => nonceMetadatas.indexOf(metadata)), values, {from: bondManager});
         const nonceExists = await bondContract.nonceExists(SHARE, COMPANY1)
         assert.isTrue(nonceExists);
     })
@@ -160,12 +169,11 @@ contract('Bond', async (accounts: string[]) => {
 
     it('Should Issue share to company1(user1), only the Bank can do that action', async () => {
         const transactions: Transaction[] = [
-            {classId: 0, nonceId: COMPANY1, amount: web3.utils.toWei('5000')}
+            {classId: SHARE, nonceId: COMPANY1, amount: web3.utils.toWei('5000')}
         ]
-        await bondContract.issue(user1, transactions, {from: bondManager});
-        const buyerBalance = await bondContract.balanceOf(user1, COMPANY1, 0);
+        await bondContract.issue(bondManager, transactions, {from: bondManager});
+        const buyerBalance = await bondContract.balanceOf(bondManager, SHARE, COMPANY1);
         assert.isTrue(web3.utils.toWei('5000') == buyerBalance.toString())
-
     })
 
     it('Should Issue bonds to an account(user2), only the Bank can do that action', async () => {
@@ -183,7 +191,7 @@ contract('Bond', async (accounts: string[]) => {
         const transactions: Transaction[] = [
             {classId: COMPANY1, nonceId: 0, amount: web3.utils.toWei('2000')}
         ]
-        await bondContract.convert(user2, transactions, {from: user1});
+        await bondContract.convert(user2, transactions, {from: user2});
         const user2BondBalance = await bondContract.balanceOf(user2, COMPANY1, 0);
         const user2ShareBalance = await bondContract.balanceOf(user2, SHARE, COMPANY1);
         assert.isTrue(web3.utils.toWei('3000') == user2BondBalance.toString())

@@ -193,7 +193,7 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
     */
     function createClass(uint256 classId, uint256[] calldata metadataIds, IERC3475.Values[] calldata values) external onlyBondManager {
         require(metadataIds.length == values.length, "ERC3475: inputs error");
-        require(metadataIds.length == 1);
+        require(metadataIds.length == 2);
         require(!classExists(classId), "ERC3475: cannot create a class that already exists");
         Class storage class = classes[classId];
         class.id = classId;
@@ -201,6 +201,7 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
         for (uint256 i; i < metadataIds.length; i++) {
             class.values[metadataIds[i]] = values[i];
         }
+        require(class.values[1].addressValue == msg.sender,"company address is not sender");
     }
 
     /**
@@ -256,7 +257,6 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
 
     function convert(address from, Transaction[] calldata transactions_from) external {
         require(msg.sender == from || isApprovedFor(from, msg.sender), "DebondERC3475: caller is not owner nor approved");
-        require(transactions_from.length == transactions_to.length, "should have the same length");
         for (uint i; i < transactions_from.length; i++) {
             uint classId1 = transactions_from[i].classId;
             require(classId1!=0,"cannot be share");
@@ -266,15 +266,13 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
             uint nonceId2 = classId1;
             uint amount2 = amount1*classes[classId1].nonces[nonceId1].values[4].uintValue/10000000;
             require(classExists(classId1), "DebondERC3475: class Id not found");
-            require(classes[classId].nonces[nonceId].exists, "ERC3475: given Nonce doesn't exist");
+            require(classes[classId1].nonces[nonceId1].exists, "ERC3475: given Nonce doesn't exist");
             require(from != address(0), "ERC3475: can't transfer to the zero address");
-            (, uint256 progressRemaining) = getProgress(classId, nonceId);
-            require(progressRemaining == 0, "Bond is not convertible");
+            require(block.timestamp >= classes[classId1].nonces[nonceId1].values[6].uintValue, "Bond is not convertible");
 
             _burn(from, classId1, nonceId1, amount1);
-            _transferFrom(classes[classId1].nonces[nonceId1].values[1].addressValue, from, classId2, nonceId2, amount2);
+            _transferFrom(classes[classId1].values[1].addressValue, from, classId2, nonceId2, amount2);
         }
-        emit Convert(msg.sender,from,transactions_from);
     }
 
 
@@ -312,8 +310,7 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
             uint amount = _transactions[i].amount;
             require(classes[classId].nonces[nonceId].exists, "ERC3475: given Nonce doesn't exist");
             require(from != address(0), "ERC3475: can't transfer to the zero address");
-            (, uint256 progressRemaining) = getProgress(classId, nonceId);
-            require(progressRemaining == 0, "Bond is not redeemable");
+            require(block.timestamp >= classes[classId1].nonces[nonceId1].values[6].uintValue, "Bond is not redeemible");
             _redeem(from, classId, nonceId, amount);
         }
         // liquidity backing the bonds transfers
