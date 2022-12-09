@@ -223,6 +223,9 @@ contract('Bond', async (accounts: string[]) => {
         const burnedSupply = await bondContract.burnedSupply(DBIT_FIX_6MTH_CLASS_ID, 1);
         assert.isTrue(web3.utils.toWei('6000') == user2Balance.toString())
         assert.isTrue(web3.utils.toWei('1000') == burnedSupply.toString())
+        // const executableAddress = await bondContract.getExecutableAddress();
+        // console.log("ExecutableAddress: ", executableAddress);
+        // console.log("BankAddress: ", bondContract.getBankAddress());
     })
 
     // it('Should be able to redeem bonds from user', async () => {

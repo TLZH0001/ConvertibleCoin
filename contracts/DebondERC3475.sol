@@ -70,6 +70,7 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
         _;
     }
 
+
     /**
     * @notice change the Bank Address
     * @param _bondManagerAddress the new bondManagerAddress to set
@@ -78,6 +79,14 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
         require(_bondManagerAddress != address(0), "DebondERC3475 Error: Address given is address(0)");
         bondManagerAddress = _bondManagerAddress;
     }
+
+//    function getBankAddress() external view returns (address) {
+//        return bankAddress;
+//    }
+//
+//    function getBondManagerAddress() external view returns (address) {
+//        return bondManagerAddress;
+//    }
 
     /**
     * @notice change the Bank Address
