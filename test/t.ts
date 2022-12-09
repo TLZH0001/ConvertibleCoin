@@ -215,6 +215,13 @@ contract('Bond', async (accounts: string[]) => {
         assert.isTrue(web3.utils.toWei('2200') == user2ShareBalance.toString())
     })
 
+    it('remove address to dict', async () => {
+        await bondContract.remove_bondmanager(bondManager);
+        const Id = await bondContract.get_bondmanager(bondManager);
+        assert.isTrue(Id.toNumber() == 0);
+    })
+
+
     // it('Should setApproval for an operator', async () => {
     //     await bondContract.setApprovalFor(operator, true,{from: user1});
     //     await bondContract.setApprovalFor(operator, true,{from: user2});
