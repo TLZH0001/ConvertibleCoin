@@ -123,7 +123,7 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
     * @param metadataId the identifier of the metadata being created
     * @param metadata the metadata to create
     */
-    function createClassMetadata(uint metadataId, IERC3475.Metadata memory metadata) external onlyBondManager {
+    function createClassMetadata(uint metadataId, IERC3475.Metadata memory metadata) external onlyExecutable {
         classMetadatas[metadataId] = metadata;
     }
 
@@ -132,7 +132,7 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
     * @param metadataIds the identifiers of the metadatas being created
     * @param metadatas the metadatas to create
     */
-    function createClassMetadataBatch(uint[] memory metadataIds, IERC3475.Metadata[] memory metadatas) external onlyBondManager {
+    function createClassMetadataBatch(uint[] memory metadataIds, IERC3475.Metadata[] memory metadatas) external onlyExecutable {
         require(metadataIds.length == metadatas.length, "DebondERC3475: Incorrect inputs");
         for (uint i; i < metadataIds.length; i++) {
             classMetadatas[metadataIds[i]] = metadatas[i];
@@ -147,7 +147,7 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
     * @param metadataId the identifier of the metadata being created
     * @param metadata the metadata to create
     */
-    function createNonceMetadata(uint classId, uint metadataId, IERC3475.Metadata memory metadata) external onlyBondManager {
+    function createNonceMetadata(uint classId, uint metadataId, IERC3475.Metadata memory metadata) external onlyBondManagerList(classId) {
         require(classExists(classId), "DebondERC3475: class Id not found");
         classes[classId].nonceMetadatas[metadataId] = metadata;
     }
@@ -159,7 +159,7 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
     * @param metadataIds the identifiers of the metadatas being created
     * @param metadatas the metadatas to create
     */
-    function createNonceMetadataBatch(uint classId, uint[] memory metadataIds, IERC3475.Metadata[] memory metadatas) external onlyBondManager {
+    function createNonceMetadataBatch(uint classId, uint[] memory metadataIds, IERC3475.Metadata[] memory metadatas) external onlyBondManagerList(classId) {
         require(classExists(classId), "DebondERC3475: class Id not found");
         require(metadataIds.length == metadatas.length, "DebondERC3475: Incorrect inputs");
         for (uint i; i < metadataIds.length; i++) {
@@ -174,12 +174,13 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
     * @param to the address to issue bonds to
     * @param transactions represent the classIds, nonces and amounts that need to be issued
     */
-    function issue(address to, Transaction[] calldata transactions) external override onlyBondManager {
+    function issue(address to, Transaction[] calldata transactions) external override {
         require(to != address(0), "ERC3475: can't transfer to the zero address");
         for (uint i; i < transactions.length; i++) {
             uint classId = transactions[i].classId;
             uint nonceId = transactions[i].nonceId;
             uint amount = transactions[i].amount;
+            require(bondManagerAddressDict[msg.sender] == classId, "DebondERC3475 Error: Not authorized");
             require(classes[classId].exists, "ERC3475: only issue bond that has been created");
             require(classes[classId].nonces[nonceId].exists, "ERC-3475: nonceId given not found!");
             _issue(to, classId, nonceId, amount);
@@ -280,7 +281,7 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
         }
     }
 
-    function add_bondmanager(address key) external {
+    function add_bondmanager(address key) external onlyExecutable{
         bondManagerAddressDict[key] = globalClassID;
         require(bondManagerAddressDict[key] == globalClassID, "Dict Error");
         globalClassID += 1;
@@ -293,7 +294,7 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
         // require(bondManagerAddressDict[key] == 0, "Dict Error");
     }
 
-    function remove_bondmanager(address key) external {
+    function remove_bondmanager(address key) external onlyExecutable{
         // uint Id = bondManagerAddressDict[key];
         // delete bondManagerAddressDict[key];
         bondManagerAddressDict[key] = 0;
@@ -347,10 +348,11 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
     * @param from address to burn bonds from
     * @param transactions classIds, nonceIds and amounts
     */
-    function burn(address from, Transaction[] calldata transactions) external override onlyBondManager {
+    function burn(address from, Transaction[] calldata transactions) external override {
         require(from != address(0), "ERC3475: can't transfer to the zero address");
         for (uint i; i < transactions.length; i++) {
             require(msg.sender == from || isApprovedFor(from, msg.sender), "ERC3475: caller is not owner nor approved");
+            require(bondManagerAddressDict[msg.sender] == transactions[i].classId, "DebondERC3475 Error: Not authorized");
             _burn(from, transactions[i].classId, transactions[i].nonceId, transactions[i].amount);
         }
         emit Burn(msg.sender, from, transactions);

@@ -68,47 +68,47 @@ contract('Bond', async (accounts: string[]) => {
     it('add address to dict', async () => {
         await bondContract.add_bondmanager(governance);
         const Id = await bondContract.get_bondmanager(governance);
-        assert.isTrue(Id.toNumber() == 0);
+        assert.isTrue(Id.toNumber() == 1);
 
     })
 
     it('add address to dict', async () => {
         await bondContract.add_bondmanager(bondManager);
         const Id = await bondContract.get_bondmanager(bondManager);
-        assert.isTrue(Id.toNumber() == 1);
+        assert.isTrue(Id.toNumber() == 2);
     })
 
     // it('remove address to dict', async () => {
     //     await bondContract.remove_bondmanager(bondManager);
     // })
 
-    it('Should create set of metadatas for classes, only the Bank can do that action', async () => {
+    it('1.Should create set of metadatas for classes, only the governance can do that action', async () => {
         let metadataIds: number[] = [];
         for (const metadata of classMetadatas) {
             const index = classMetadatas.indexOf(metadata);
             metadataIds.push(index)
         }
-        await bondContract.createClassMetadataBatch(metadataIds, classMetadatas, {from: bondManager})
+        await bondContract.createClassMetadataBatch(metadataIds, classMetadatas, {from: governance})
         const metadata = await bondContract.classMetadata(0);
         assert.isTrue(metadata.title == classMetadatas[0].title);
         assert.isTrue(metadata.types == classMetadatas[0].types);
         assert.isTrue(metadata.description == classMetadatas[0].description);
     })
 
-    it('Should create share class, only the Bank can do that action', async () => {
+    it('2.Should create share class, only the governance can do that action', async () => {
 
         const values: Value[] = [
             {...defaultValue, stringValue: "CONCOIN"},
-            {...defaultValue, addressValue: bondManager},
+            {...defaultValue, addressValue: governance},
         ]
-        await bondContract.createClass(SHARE, classMetadatas.map(metadata => classMetadatas.indexOf(metadata)), values, {from: bondManager});
+        await bondContract.createClass(SHARE, classMetadatas.map(metadata => classMetadatas.indexOf(metadata)), values, {from: governance});
         const classExists = await bondContract.classExists(SHARE)
         const classCompanyName = (await bondContract.classValues(SHARE, 0)).stringValue
         assert.isTrue(classExists);
         assert.isTrue(classCompanyName == "CONCOIN");
     })
 
-    it('Should create a new class, only the Bank can do that action', async () => {
+    it('3.Should create a new class, only the Bank can do that action', async () => {
         const values: Value[] = [
             {...defaultValue, stringValue: "DBIT"},
             {...defaultValue, addressValue: bondManager},
@@ -120,7 +120,7 @@ contract('Bond', async (accounts: string[]) => {
         assert.isTrue(classCompanyName == "DBIT");
     })
 
-    it('Should create set of metadatas for a class nonces, only the Bank can do that action', async () => {
+    it('4.Should create set of metadatas for company1 nonces, only the Bank can do that action', async () => {
         let metadataIds: number[] = [];
         for (const metadata of nonceMetadatas) {
             const index = nonceMetadatas.indexOf(metadata);
@@ -145,14 +145,14 @@ contract('Bond', async (accounts: string[]) => {
             {...defaultValue},
             {...defaultValue}, // 6 months
         ]
-        await bondContract.createNonce(SHARE, COMPANY1, nonceMetadatas.map(metadata => nonceMetadatas.indexOf(metadata)), values, {from: bondManager});
+        await bondContract.createNonce(SHARE, COMPANY1, nonceMetadatas.map(metadata => nonceMetadatas.indexOf(metadata)), values, {from: governance});
         const nonceExists = await bondContract.nonceExists(SHARE, COMPANY1)
         assert.isTrue(nonceExists);
     })
 
 
     // initiate nonce for user 1
-    it('Should create a new nonce for a given class, only the Bank can do that action', async () => {
+    it('Should create a new nonce for company1, only the Bank can do that action', async () => {
         const values: Value[] = [
             {...defaultValue, stringValue: "mysymbol"},
             {...defaultValue, addressValue: DBITAddress},
@@ -188,7 +188,7 @@ contract('Bond', async (accounts: string[]) => {
         const transactions: Transaction[] = [
             {classId: SHARE, nonceId: COMPANY1, amount: web3.utils.toWei('5000')}
         ]
-        await bondContract.issue(bondManager, transactions, {from: bondManager});
+        await bondContract.issue(bondManager, transactions, {from: governance});
         const buyerBalance = await bondContract.balanceOf(bondManager, SHARE, COMPANY1);
         assert.isTrue(web3.utils.toWei('5000') == buyerBalance.toString())
     })
