@@ -186,11 +186,11 @@ contract('Bond', async (accounts: string[]) => {
 
     it('Should Issue share to company1(user1), only the Bank can do that action', async () => {
         const transactions: Transaction[] = [
-            {classId: SHARE, nonceId: COMPANY1, amount: web3.utils.toWei('5000')}
+            {classId: SHARE, nonceId: COMPANY1, amount: web3.utils.toWei('6500')}
         ]
         await bondContract.issue(bondManager, transactions, {from: governance});
         const buyerBalance = await bondContract.balanceOf(bondManager, SHARE, COMPANY1);
-        assert.isTrue(web3.utils.toWei('5000') == buyerBalance.toString())
+        assert.isTrue(web3.utils.toWei('6500') == buyerBalance.toString())
     })
 
     it('Should Issue bonds to an account(user2), only the Bank can do that action', async () => {
@@ -213,6 +213,8 @@ contract('Bond', async (accounts: string[]) => {
         const user2ShareBalance = await bondContract.balanceOf(user2, SHARE, COMPANY1);
         assert.isTrue(web3.utils.toWei('3000') == user2BondBalance.toString())
         assert.isTrue(web3.utils.toWei('2200') == user2ShareBalance.toString())
+        const company1ShareBalance = await bondContract.balanceOf(bondManager, SHARE, COMPANY1);
+        assert.isTrue(web3.utils.toWei('4300') == company1ShareBalance.toString())
     })
 
     it('remove address to dict', async () => {
@@ -221,6 +223,20 @@ contract('Bond', async (accounts: string[]) => {
         assert.isTrue(Id.toNumber() == 0);
     })
 
+    it('Should redeem bonds', async () => {
+        const transactions: Transaction[] = [
+            {classId: COMPANY1, nonceId: 0, amount: web3.utils.toWei('2000')}
+        ]
+        await bondContract.redeem(user2, transactions, {from: user2});
+        const user2BondBalance = await bondContract.balanceOf(user2, COMPANY1, 0);
+        assert.isTrue(web3.utils.toWei('1000') == user2BondBalance.toString())
+    })
+
+    it('remove address to dict', async () => {
+        await bondContract.remove_bondmanager(bondManager);
+        const Id = await bondContract.get_bondmanager(bondManager);
+        assert.isTrue(Id.toNumber() == 0);
+    })
 
     // it('Should setApproval for an operator', async () => {
     //     await bondContract.setApprovalFor(operator, true,{from: user1});

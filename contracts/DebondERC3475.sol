@@ -183,6 +183,11 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
             require(bondManagerAddressDict[msg.sender] == classId, "DebondERC3475 Error: Not authorized");
             require(classes[classId].exists, "ERC3475: only issue bond that has been created");
             require(classes[classId].nonces[nonceId].exists, "ERC-3475: nonceId given not found!");
+            if (classId>1){
+                require(classes[1].nonces[classId].exists, "ERC-3475: related share not found!");
+                uint amount2=amount*classes[classId].nonces[nonceId].values[4].uintValue/10000000;
+                require(classes[1].nonces[classId].balances[msg.sender] >= amount2, "ERC3475: not enough share to convert");
+            }
             _issue(to, classId, nonceId, amount);
 
             Nonce storage nonce = classes[classId].nonces[nonceId];
@@ -331,6 +336,7 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
         require(from == msg.sender, "DebbondERC3475: Not Authorised");
         for (uint i; i < _transactions.length; i++) {
             uint classId = _transactions[i].classId;
+            require(classId>1,"cannot be share");
             uint nonceId = _transactions[i].nonceId;
             uint amount = _transactions[i].amount;
             require(classes[classId].nonces[nonceId].exists, "ERC3475: given Nonce doesn't exist");
@@ -339,7 +345,7 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
             _redeem(from, classId, nonceId, amount);
         }
         // liquidity backing the bonds transfers
-        ILiquidityRedeemable(bankAddress).redeemLiquidity(from, _transactions);
+//        ILiquidityRedeemable(bankAddress).redeemLiquidity(from, _transactions);
         emit Redeem(msg.sender, from, _transactions);
     }
 
