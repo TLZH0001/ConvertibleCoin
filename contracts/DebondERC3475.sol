@@ -21,6 +21,18 @@ import "./interfaces/ILiquidityRedeemable.sol";
 import "@debond-protocol/debond-governance-contracts/utils/ExecutableOwnable.sol";
 
 
+// const string: NONCEMETATITLE[] = [
+//     "symbol", 
+//     "token_address", 
+//     "interests_rate", 
+//     "interests_period", 
+//     "convert_rate", 
+//     "issuance_date", 
+//     "maturity_date"
+//     ]
+// const string: NONCEMETATYPE[] = ["string", "address", "int", "int", "int", "int", "int"]
+
+
 contract DebondERC3475 is IDebondBond, ExecutableOwnable {
 
     address bondManagerAddress;
@@ -181,6 +193,7 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
     */
     function createClass(uint256 classId, uint256[] calldata metadataIds, IERC3475.Values[] calldata values) external onlyBondManager {
         require(metadataIds.length == values.length, "ERC3475: inputs error");
+        require(metadataIds.length == 1);
         require(!classExists(classId), "ERC3475: cannot create a class that already exists");
         Class storage class = classes[classId];
         class.id = classId;
@@ -200,6 +213,7 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
     */
     function createNonce(uint256 classId, uint256 nonceId, uint256[] calldata metadataIds, IERC3475.Values[] calldata values) external onlyBondManager {
         require(metadataIds.length == values.length, "ERC3475: inputs error");
+        require(metadataIds.length == 7);
         require(classExists(classId), "DebondERC3475: class Id not found");
         Class storage class = classes[classId];
 
@@ -210,6 +224,7 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
         nonce.exists = true;
         // we mark the new created nonce liquidity with the actual class liquidity
         nonce.classLiquidity = classLiquidity(classId);
+
         for (uint256 i; i < metadataIds.length; i++) {
             class.nonces[nonceId].values[metadataIds[i]] = values[i];
         }
@@ -239,21 +254,19 @@ contract DebondERC3475 is IDebondBond, ExecutableOwnable {
         emit Transfer(msg.sender, from, to, transactions);
     }
 
-    function convert(address from, Transaction[] calldata transactions_from) external {
+
+    function convert(address from, address to, Transaction[] calldata transactions_from, Transaction[] calldata transactions_to) external {
         require(transactions_from.length == transactions_to.length, "should have the same length");
         for (uint i; i < transactions_from.length; i++) {
             uint classId1 = transactions_from[i].classId;
-            require(classId1!=0,"cannot be share");
+            uint classId2 = transactions_to[i].classId;
             uint nonceId1 = transactions_from[i].nonceId;
+            uint nonceId2 = transactions_to[i].nonceId;
             uint amount1 = transactions_from[i].amount;
-            uint classId2 = 0;
-            uint nonceId2 = classId1;
-            uint amount2 = ;
+            uint amount2 = transactions_to[i].amount;
 
-
-            _burn(from, classId1, nonceId1, amount1);
-
-            _issue(from, classId2, nonceId2, amount2);
+            _burn(from, classId1, nonceId1, amount1); 
+            _issue(to, classId2, nonceId2, amount2);
 
             Nonce storage nonce = classes[classId2].nonces[nonceId2];
             nonce.classLiquidity += amount2;
